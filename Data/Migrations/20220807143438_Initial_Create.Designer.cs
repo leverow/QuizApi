@@ -11,8 +11,8 @@ using QuizApi.Data;
 namespace QuizApi.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20220807134343_Remove_NameHash")]
-    partial class Remove_NameHash
+    [Migration("20220807143438_Initial_Create")]
+    partial class Initial_Create
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -35,6 +35,9 @@ namespace QuizApi.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NameHash")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")

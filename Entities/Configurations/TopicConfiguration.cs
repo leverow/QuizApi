@@ -10,8 +10,8 @@ public class TopicConfiguration : EntityBaseConfiguration<Topic>
         base.Configure(builder);
 
         builder.Property(b => b.Name).HasColumnType("varchar(50)").IsRequired(true);
-        // builder.Property(b => b.NameHash).HasColumnType("nvarchar(64)").IsRequired(true);
+        builder.Property(b => b.NameHash).HasColumnType("nvarchar(64)").IsRequired(true);
         builder.Property(b => b.Description).HasColumnType("nvarchar(255)").IsRequired(true);
-        // builder.HasIndex(b => b.NameHash).IsUnique(true);
+        builder.HasIndex(b => b.NameHash).IsUnique(true);
     }
 }

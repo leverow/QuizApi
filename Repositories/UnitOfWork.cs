@@ -1,4 +1,6 @@
 
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using QuizApi.Data;
 using QuizApi.Entities;
@@ -26,6 +28,7 @@ public class UnitOfWork : IUnitOfWork
 
     public int Save()
     {
+        AddNameHash();
         SetDates();
         return _context.SaveChanges();
     }
@@ -43,6 +46,22 @@ public class UnitOfWork : IUnitOfWork
             if(entry.State == EntityState.Modified)
             {
                 entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+        }
+    }
+
+    private void AddNameHash()
+    {
+        foreach(var entry in _context.ChangeTracker.Entries<Topic>())
+        {
+            if(entry.Entity is Topic topic)
+            {
+                using var sha256 = SHA256.Create();
+                var nameBytes = Encoding.UTF8.GetBytes(topic.Name 
+                    ?? throw new ArgumentNullException(nameof(topic.Name)));
+                var hashBytes = sha256.ComputeHash(nameBytes);
+
+                topic.NameHash = Encoding.UTF8.GetString(hashBytes);
             }
         }
     }
