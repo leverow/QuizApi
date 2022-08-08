@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using QuizApi.Models;
 
 namespace QuizApi.Services;
@@ -58,7 +60,7 @@ public class TopicService : ITopicService
         }
     }
 
-    public (bool IsSuccess, Exception? exception, IEnumerable<Models.Topic>) GetByName(string name)
+    public (bool IsSuccess, Exception? exception, IEnumerable<Models.Topic> topics) GetByName(string name)
     {
         try
         {
@@ -116,4 +118,29 @@ public class TopicService : ITopicService
         return true;
 
     }
+
+    public bool TopicExists(string name)
+    {
+        var nameHash = GenerateHash(name);
+        var result = _unitOfWork.Topics.Find(b => b.NameHash == nameHash);
+        
+        if(result.Count() == 0) return false;
+
+        return true;
+
+    }
+
+    public string? GenerateHash(string? stringToBeHashed)
+    {
+        using var sha256 = SHA256.Create();
+        var nameBytes = Encoding.UTF8.GetBytes(stringToBeHashed 
+            ?? throw new ArgumentNullException(nameof(stringToBeHashed)));
+        var hashBytes = sha256.ComputeHash(nameBytes);
+
+        var result = Encoding.UTF8.GetString(hashBytes);
+
+        return(result);
+    }
+
+
 }

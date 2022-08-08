@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using QuizApi.Dtos;
 using QuizApi.Dtos.Topic;
 using QuizApi.Services;
@@ -28,6 +29,8 @@ public class TopicsController : ControllerBase
         if(!ModelState.IsValid) return NotFound();
 
         var model = Mappers.DtoToModel(dtoModel);
+
+        if(_service.TopicExists(dtoModel.Name!)) return BadRequest("Topic already exits");
 
         var result = _service.Create(model);
 
@@ -60,6 +63,20 @@ public class TopicsController : ControllerBase
 
         return Ok(response);
     }
+    // [HttpGet("{name}")]
+    // public IActionResult GetTopicByName([FromRoute]string name)
+    // {
+    //     if(!_service.TopicExists(name)) return NotFound("Topic not found");
+        
+    //     var result = _service.GetByName(name);
+    //     if(!result.IsSuccess)
+    //     {
+    //         _logger.LogInformation($" 🛑 Reason of 📧 exception is {result.exception?.Message}");
+    //         return BadRequest();
+    //     }
+    //     var json = JsonConvert.SerializeObject(result, Formatting.Indented);
+    //     return Ok(json);
+    // }
 
     [HttpGet("{id}")]
     public IActionResult GetTopicById([FromRoute]ulong id)
