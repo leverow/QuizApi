@@ -39,4 +39,10 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
 
     public void RemoveRange(IEnumerable<TEntity> entities)
         => _context.Set<TEntity>().RemoveRange(entities);
+
+    public TEntity Update(TEntity entity)
+    {
+        var entry = _context.Set<TEntity>().Update(entity);
+        return entry.Entity;
+    }
 }

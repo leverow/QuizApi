@@ -11,4 +11,6 @@ public interface IGenericRepository<TEntity> where TEntity : class
     void AddRange(IEnumerable<TEntity> entities);
     TEntity Remove(TEntity entity);
     void RemoveRange(IEnumerable<TEntity> entities);
+    TEntity Update(TEntity entity);
+
 }

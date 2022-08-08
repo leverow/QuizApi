@@ -21,6 +21,25 @@ public class TopicsController : ControllerBase
         _service = service;
     }
 
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult PostTopic(CreateTopicDto dtoModel)
+    {
+        if(!ModelState.IsValid) return NotFound();
+
+        var model = Mappers.DtoToModel(dtoModel);
+
+        var result = _service.Create(model);
+
+        if(!result.IsSuccess)
+        {
+            _logger.LogInformation($" 🛑 Reason of 📧 exception is {result.exception?.Message}");
+            return BadRequest();
+        }
+
+        return Created("/", dtoModel);
+    }
+
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<List<Topic>>))]
@@ -42,29 +61,47 @@ public class TopicsController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> PostTopic(CreateTopicDto model)
+    [HttpGet("{id}")]
+    public IActionResult GetTopicById([FromRoute]ulong id)
     {
-        if(!ModelState.IsValid) return NotFound();
-
-        var ModelgaAylanganDto = Mappers.DtoToModel(model);
-
-        var result = await _service.CreateAsync(ModelgaAylanganDto);
-        // Console.WriteLine($"Bu yerda malumot qoshilishi mumkin edi : {ModelgaAylanganDto}");
+        if(!_service.TopicExists(id)) return NotFound("Topic not found");
         
-
+        var result = _service.GetById(id);
         if(!result.IsSuccess)
         {
-            _logger.LogInformation($"Error boldi sababi: {result.exception?.Message}");
+            _logger.LogInformation($" 🛑 Reason of 📧 exception is {result.exception?.Message}");
             return BadRequest();
         }
-        // var entity = ToEntity(model);
+        return Ok(result.topic);
+    }
 
-        // var result = await _unitOfWork.Topics.Add(entity);
-        // _unitOfWork.Save();
+    [HttpPut("{id}")]
+    public IActionResult UpdateTopic([FromRoute]ulong id, [FromForm]UpdateTopicDto dtoModel)
+    {
+        if(!_service.TopicExists(id)) return NotFound("Topic not found");
+        
+        var model = Mappers.UpdateDtoToModel(dtoModel);
+        var result = _service.Update(model);
+        if(!result.IsSuccess)
+        {
+            _logger.LogInformation($" 🛑 Reason of 📧 exception is {result.exception?.Message}");
+            return BadRequest();
+        }
+        return Accepted(result.topic);
+    }
 
+    [HttpDelete("{id}")]
+    public IActionResult DeleteTopic([FromQuery]ulong id)
+    {
+        if(!_service.TopicExists(id)) return NotFound("Topic not found");
 
-        return Created("/", model);
+        var model = _service.GetById(id);
+        var result = _service.Remove(model.topic);
+        if(!result.IsSuccess)
+        {
+            _logger.LogInformation($" 🛑 Reason of 📧 exception is {result.exception?.Message}");
+            return BadRequest();
+        }
+        return Accepted(result.topic);
     }
 }

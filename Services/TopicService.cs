@@ -14,23 +14,19 @@ public class TopicService : ITopicService
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
-    public async Task<(bool IsSuccess, Exception? exception, Topic topic)> CreateAsync(Topic topic)
+    public (bool IsSuccess, Exception? exception, Topic topic) Create(Topic topic)
     {
         try
         {
             var entity = Mappers.ModelToEntity(topic);
-
-            await _unitOfWork.Topics.Add(entity);
-
+            _unitOfWork.Topics.Add(entity);
             _unitOfWork.Save();
-
             _logger.LogInformation("✅ Topic was succuessfully created");
-
             return (true, null, topic);
         }
         catch(Exception e)
         {
-            _logger.LogInformation($"❌ Error occured while creating new Topic. Reason: {e.InnerException}");
+            _logger.LogInformation($"❌ Error occured while creating new Topic");
             return (false, e, topic);
         }
     }
@@ -41,32 +37,83 @@ public class TopicService : ITopicService
 
         IEnumerable<Models.Topic> models = new List<Models.Topic>(){};
         
-        foreach(var entity in entities)
-        {
-            var modelgaaylanganholati = Mappers.EntityToModel(entity);
-            models.ToList().Add(modelgaaylanganholati);
-        }
+        models = entities.Select(Mappers.EntityToModel);
         
         return models;
     }
 
-    public ValueTask<Topic> GetByIdAsync(ulong id)
+    public (bool IsSuccess, Exception? exception, Topic topic) GetById(ulong id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var entity = _unitOfWork.Topics.GetById(id);
+            var model = Mappers.EntityToModel(entity!);
+            _logger.LogInformation("✅ Finding topic via id successfully completed");
+            return (true, null, model);
+        }
+        catch(Exception e)
+        {
+            _logger.LogInformation($"🛑 Error occured while finding Topic via id");
+            return (false, e, null!);
+        }
     }
 
-    public ValueTask<Topic> GetByNameAsync(string name)
+    public (bool IsSuccess, Exception? exception, IEnumerable<Models.Topic>) GetByName(string name)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var entities = _unitOfWork.Topics.Find(e => e.Name == name);
+            var models = entities.Select(Mappers.EntityToModel);
+            _logger.LogInformation("✅ Finding topic via name successfully completed");
+            return (true, null, models);
+        }
+        catch(Exception e)
+        {
+            _logger.LogInformation($"🛑 Error occured while finding Topic via name");
+            return (false, e, null!);
+        }
+    }
+    public (bool IsSuccess, Exception? exception, Topic topic) Update(Topic topic)
+    {
+        try
+        {
+            var entity = Mappers.ModelToEntity(topic);
+            _unitOfWork.Topics.Update(entity);
+            _unitOfWork.Save();
+            _logger.LogInformation($"✅ Topic named {entity.Name} has been successfully updated");
+            return (true, null, topic);
+        }
+        catch(Exception e)
+        {
+            _logger.LogInformation($"🛑 Error occured while updating Topic");
+            return (false, e, topic);
+        }
     }
 
-    public ValueTask<Topic> RemoveAsync(Topic topic)
+    public (bool IsSuccess, Exception? exception, Topic topic) Remove(Topic topic)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var entity = Mappers.ModelToEntity(topic);
+            _unitOfWork.Topics.Remove(entity);
+            _unitOfWork.Save();
+            _logger.LogInformation($"✅ Topic named {entity.Name} has been successfully deleted from DB");
+            return (true, null, topic);
+        }
+        catch(Exception e)
+        {
+            _logger.LogInformation($"🛑 Error occured while removing Topic from DB");
+            return (false, e, topic);
+        }
     }
 
-    public ValueTask<Topic> UpdateAsync(Topic topic)
+    public bool TopicExists(ulong id)
     {
-        throw new NotImplementedException();
+        var result = _unitOfWork.Topics.Find(b => b.Id == id);
+        
+        if(result.Count() == 0) return false;
+
+        return true;
+
     }
 }
